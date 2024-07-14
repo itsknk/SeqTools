@@ -49,6 +49,16 @@
         <label><input type="checkbox" value="reverse"> Reverse</label>
         <label><input type="checkbox" value="complement"> Complement</label>
         <label><input type="checkbox" value="reverse_complement"> Reverse Complement</label>
+        <label><input type="checkbox" value="translate"> Translate</label>
+    </div>
+    <div id="translationOptions" style="display: none;">
+        <label>Reading Frame:
+            <select id="frameSelect">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+        </label>
     </div>
     <button id="submitBtn">Process</button>
     <div id="results"></div>
@@ -57,13 +67,15 @@
         document.getElementById('submitBtn').addEventListener('click', function() {
             const sequence = document.getElementById('sequenceInput').value;
             const operations = Array.from(document.querySelectorAll('#operations input:checked')).map(el => el.value);
+            const frame = parseInt(document.getElementById('frameSelect').value);
+            const offset = frame - 1; // Convert frame to offset
 
             fetch('/process', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ sequence, operations }),
+                body: JSON.stringify({ sequence, operations, offset }),
             })
             .then(response => response.json())
             .then(data => {
@@ -81,6 +93,11 @@
             .catch(error => {
                 console.error('Error:', error);
             });
+        });
+
+        // Show/hide translation options
+        document.querySelector('input[value="translate"]').addEventListener('change', function() {
+            document.getElementById('translationOptions').style.display = this.checked ? 'block' : 'none';
         });
     </script>
 </body>
