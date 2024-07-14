@@ -50,6 +50,7 @@
         <label><input type="checkbox" value="complement"> Complement</label>
         <label><input type="checkbox" value="reverse_complement"> Reverse Complement</label>
         <label><input type="checkbox" value="translate"> Translate</label>
+        <label><input type="checkbox" value="predict_coding_frames"> Predict Coding Frames</label>
     </div>
     <div id="translationOptions" style="display: none;">
         <label>Reading Frame:
@@ -58,6 +59,14 @@
                 <option value="2">2</option>
                 <option value="3">3</option>
             </select>
+        </label>
+    </div>
+    <div id="codingFrameOptions" style="display: none;">
+        <label>Minimum Length:
+            <input type="number" id="minLength" value="0" min="0">
+        </label>
+        <label>Maximum Length:
+            <input type="number" id="maxLength" value="1000" min="0">
         </label>
     </div>
     <button id="submitBtn">Process</button>
@@ -69,13 +78,15 @@
             const operations = Array.from(document.querySelectorAll('#operations input:checked')).map(el => el.value);
             const frame = parseInt(document.getElementById('frameSelect').value);
             const offset = frame - 1; // Convert frame to offset
+            const minLength = parseInt(document.getElementById('minLength').value);
+            const maxLength = parseInt(document.getElementById('maxLength').value);
 
             fetch('/process', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ sequence, operations, offset }),
+                body: JSON.stringify({ sequence, operations, offset, min_length: minLength, max_length: maxLength }),
             })
             .then(response => response.json())
             .then(data => {
@@ -85,7 +96,20 @@
                 } else {
                     let resultsHtml = '<h2>Results:</h2>';
                     for (const [operation, result] of Object.entries(data)) {
-                        resultsHtml += `<p><strong>${operation.charAt(0).toUpperCase() + operation.slice(1)}:</strong> ${result}</p>`;
+                        if (operation === 'coding_frames') {
+                            resultsHtml += '<h3>Predicted Coding Frames:</h3>';
+                            if (result.length === 0) {
+                                resultsHtml += '<p>No coding frames found.</p>';
+                            } else {
+                                resultsHtml += '<ul>';
+                                for (const frame of result) {
+                                    resultsHtml += `<li>Frame ${frame.frame}: Start: ${frame.start}, End: ${frame.end}, Length: ${frame.sequence.length}, ${frame.is_open ? 'Open' : 'Closed'}<br>Sequence: ${frame.sequence}</li>`;
+                                }
+                                resultsHtml += '</ul>';
+                            }
+                        } else {
+                            resultsHtml += `<p><strong>${operation.charAt(0).toUpperCase() + operation.slice(1)}:</strong> ${result}</p>`;
+                        }
                     }
                     resultsDiv.innerHTML = resultsHtml;
                 }
@@ -98,6 +122,11 @@
         // Show/hide translation options
         document.querySelector('input[value="translate"]').addEventListener('change', function() {
             document.getElementById('translationOptions').style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Show/hide coding frame options
+        document.querySelector('input[value="predict_coding_frames"]').addEventListener('change', function() {
+            document.getElementById('codingFrameOptions').style.display = this.checked ? 'block' : 'none';
         });
     </script>
 </body>
