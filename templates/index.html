@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA Sequence Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        #sequenceInput {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #operations {
+            margin-bottom: 10px;
+        }
+        #submitBtn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #submitBtn:hover {
+            background-color: #2980b9;
+        }
+        #results {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>DNA Sequence Tool</h1>
+    <textarea id="sequenceInput" rows="4" placeholder="Enter DNA sequence (A, T, G, C only)"></textarea>
+    <div id="operations">
+        <label><input type="checkbox" value="reverse"> Reverse</label>
+        <label><input type="checkbox" value="complement"> Complement</label>
+        <label><input type="checkbox" value="reverse_complement"> Reverse Complement</label>
+    </div>
+    <button id="submitBtn">Process</button>
+    <div id="results"></div>
+
+    <script>
+        document.getElementById('submitBtn').addEventListener('click', function() {
+            const sequence = document.getElementById('sequenceInput').value;
+            const operations = Array.from(document.querySelectorAll('#operations input:checked')).map(el => el.value);
+
+            fetch('/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sequence, operations }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultsDiv = document.getElementById('results');
+                if (data.error) {
+                    resultsDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+                } else {
+                    let resultsHtml = '<h2>Results:</h2>';
+                    for (const [operation, result] of Object.entries(data)) {
+                        resultsHtml += `<p><strong>${operation.charAt(0).toUpperCase() + operation.slice(1)}:</strong> ${result}</p>`;
+                    }
+                    resultsDiv.innerHTML = resultsHtml;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
