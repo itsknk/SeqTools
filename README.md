@@ -92,3 +92,6 @@ This file contains the Flask application logic. It includes:
 ### To do:
 
 - Create a function to predict splice sites from a set of exon and intron sequences, and present the splicing results with likelihood scores indicating natural, wild-type splicing.
+
+### LICENSE
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/itsknk/SeqTools/blob/master/LICENSE) file for details.
